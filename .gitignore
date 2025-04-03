@@ -81,6 +81,7 @@ tmp_results/
 !charts/*.png
 !charts/*.jpg
 !charts/*.pdf
+!docs/
 
 # Testing
 .pytest_cache/
