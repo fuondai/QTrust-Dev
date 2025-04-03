@@ -82,6 +82,18 @@ tmp_results/
 !charts/*.jpg
 !charts/*.pdf
 !docs/
+!docs/exported_charts/*.png
+!docs/exported_charts/*.jpg
+!docs/exported_charts/*.jpeg
+!docs/exported_charts/*.pdf
+!docs/architecture/*.png
+!docs/architecture/*.jpg
+!docs/architecture/*.jpeg
+!docs/architecture/*.pdf
+!docs/methodology/*.png
+!docs/methodology/*.jpg
+!docs/methodology/*.jpeg
+!docs/methodology/*.pdf
 
 # Testing
 .pytest_cache/
