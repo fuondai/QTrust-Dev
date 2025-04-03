@@ -1,0 +1,30 @@
+Project Summary
+-----------------
+Python: 89 files, 33744 lines
+JSON: 22 files, 6324 lines
+Markdown: 9 files, 1145 lines
+Text: 4 files
+YAML: 1 file
+-----------------
+Total code files: 125 files
+Total main code lines: 41213+ lines
+
+Project Description
+-----------------
+QTrust: A blockchain sharding solution based on Deep Reinforcement Learning and Federated Learning
+Key features:
+- Adaptive consensus protocol selection
+- MADRAPID Router for transaction routing
+- Hierarchical Trust-based Data Center Mechanism (HTDCM)
+- Privacy-preserving federated learning
+- Intelligent caching strategies
+- Attack resilience system
+
+Technology Stack
+-----------------
+- Core: Python 3.10+
+- ML Framework: PyTorch, TensorFlow
+- Blockchain: Custom implementation with sharding
+- Visualization: Matplotlib, Seaborn
+- Data Processing: Pandas, NumPy
+- Network: Custom P2P implementation

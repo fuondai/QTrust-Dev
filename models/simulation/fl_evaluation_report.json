@@ -1,0 +1,280 @@
+{
+  "prediction_accuracy": [
+    {
+      "shard_accuracy": 0.0,
+      "consensus_accuracy": 1.0,
+      "action_accuracy": 0.0
+    },
+    {
+      "shard_accuracy": 0.0,
+      "consensus_accuracy": 1.0,
+      "action_accuracy": 0.0
+    },
+    {
+      "shard_accuracy": 0.0,
+      "consensus_accuracy": 1.0,
+      "action_accuracy": 0.0
+    },
+    {
+      "shard_accuracy": 0.0,
+      "consensus_accuracy": 1.0,
+      "action_accuracy": 0.0
+    },
+    {
+      "shard_accuracy": 0.0,
+      "consensus_accuracy": 1.0,
+      "action_accuracy": 0.0
+    },
+    {
+      "shard_accuracy": 0.0,
+      "consensus_accuracy": 1.0,
+      "action_accuracy": 0.0
+    },
+    {
+      "shard_accuracy": 0.0,
+      "consensus_accuracy": 1.0,
+      "action_accuracy": 0.0
+    },
+    {
+      "shard_accuracy": 0.0,
+      "consensus_accuracy": 1.0,
+      "action_accuracy": 0.0
+    },
+    {
+      "shard_accuracy": 0.0,
+      "consensus_accuracy": 1.0,
+      "action_accuracy": 0.0
+    },
+    {
+      "shard_accuracy": 0.0,
+      "consensus_accuracy": 1.0,
+      "action_accuracy": 0.0
+    }
+  ],
+  "model_consistency": {
+    "high_value_security": 1.0,
+    "cross_shard_routing": 0.36363636363636365
+  },
+  "test_results": [
+    {
+      "test_case": {
+        "type": "intra_shard",
+        "value": 3.4760647670440266,
+        "source_shard": 2,
+        "destination_shard": 2,
+        "congestion": 0.24489185380347622
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "intra_shard",
+        "value": 73.91065020223722,
+        "source_shard": 0,
+        "destination_shard": 0,
+        "congestion": 0.5904925124490397
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "intra_shard",
+        "value": 3.949924724368964,
+        "source_shard": 1,
+        "destination_shard": 1,
+        "congestion": 0.2326608933907396
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "intra_shard",
+        "value": 56.563261230922684,
+        "source_shard": 3,
+        "destination_shard": 3,
+        "congestion": 0.2204406220406967
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "cross_shard",
+        "value": 81.13361521110484,
+        "source_shard": 0,
+        "destination_shard": 1,
+        "congestion": 0.6981393949882269
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "cross_shard",
+        "value": 28.50926282549254,
+        "source_shard": 1,
+        "destination_shard": 2,
+        "congestion": 0.10221027651984871
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "cross_shard",
+        "value": 10.574921306512937,
+        "source_shard": 2,
+        "destination_shard": 2,
+        "congestion": 0.8071282732743802
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "cross_shard",
+        "value": 54.086581054015376,
+        "source_shard": 3,
+        "destination_shard": 0,
+        "congestion": 0.552040631273227
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "cross_shard",
+        "value": 58.157862380419445,
+        "source_shard": 0,
+        "destination_shard": 0,
+        "congestion": 0.6612633185677101
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "cross_shard",
+        "value": 98.53693054541502,
+        "source_shard": 1,
+        "destination_shard": 0,
+        "congestion": 0.38012622503916615
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "cross_shard",
+        "value": 63.93275998217562,
+        "source_shard": 2,
+        "destination_shard": 1,
+        "congestion": 0.37018096711688264
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "intra_shard",
+        "value": 67.34734226339164,
+        "source_shard": 0,
+        "destination_shard": 0,
+        "congestion": 0.6091310056669882
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "intra_shard",
+        "value": 53.87984782594109,
+        "source_shard": 1,
+        "destination_shard": 1,
+        "congestion": 0.1634024937619284
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "cross_shard",
+        "value": 27.72483485164352,
+        "source_shard": 1,
+        "destination_shard": 2,
+        "congestion": 0.8428519201898096
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "intra_shard",
+        "value": 23.675759124446333,
+        "source_shard": 0,
+        "destination_shard": 0,
+        "congestion": 0.8050458007712143
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "cross_shard",
+        "value": 27.50634672159457,
+        "source_shard": 1,
+        "destination_shard": 2,
+        "congestion": 0.2126265440541406
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "cross_shard",
+        "value": 40.16755820500576,
+        "source_shard": 3,
+        "destination_shard": 1,
+        "congestion": 0.26488016649805246
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "intra_shard",
+        "value": 74.75390922706904,
+        "source_shard": 2,
+        "destination_shard": 2,
+        "congestion": 0.7470138116522579
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "cross_shard",
+        "value": 89.88446547664522,
+        "source_shard": 3,
+        "destination_shard": 2,
+        "congestion": 0.21932075915728333
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    },
+    {
+      "test_case": {
+        "type": "intra_shard",
+        "value": 51.443103073969986,
+        "source_shard": 0,
+        "destination_shard": 0,
+        "congestion": 0.7557821575337378
+      },
+      "predicted_shard": 0,
+      "predicted_protocol": "PBFT"
+    }
+  ]
+}

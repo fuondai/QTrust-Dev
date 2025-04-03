@@ -1,0 +1,188 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Virtual environments
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.env
+.venv
+pythonenv*
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.project
+.pydevproject
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# Local configurations
+.env
+.env.local
+.envrc
+.direnv/
+
+# File kết quả tạm thời
+benchmark_results/
+energy_results/
+logs/
+results/
+results_comparison/
+results_comparison_systems/
+tmp_results/
+
+# File hình ảnh tạm thời
+*.pdf
+!docs/architecture/*.png
+!docs/methodology/*.png
+!docs/methodology/*.jpg
+!docs/methodology/*.pdf
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+!charts/.gitkeep
+pytest-report.xml
+pytest-report.html
+
+# Temp files
+.temp/
+.tmp/
+tmp/
+temp/
+
+# Unit test / coverage reports
+.tox/
+.nox/
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+!charts/.gitkeep
+
+# Documentation build
+docs/_build/
+_docs_html/
+_build/
+site/
+
+# Configurations
+config.local.yaml
+.cursorrules
+.cursorignore
+
+# Logs and results
+*.log
+results/*.txt
+results_attack/*.txt
+results_extended/*.txt
+results_large/*.txt
+results_comparison/*.txt
+qtrust_results/*.txt
+qtrust_scale_results/*.txt
+*.tmp
+
+# Keep model files
+!results/*.pth
+!models/*.pth
+
+# OS specific
+.DS_Store
+Thumbs.db
+desktop.ini
+*.lnk
+$RECYCLE.BIN/
+ehthumbs.db
+Icon?
+
+# Docker
+.docker/
+docker-compose.override.yml
+*.dockerignore
+
+# Temporary files
+*.bak
+*.temp
+tmp/
+*.swp
+*~
+.\#*
+\#*\#
+
+# Exclude cleaned_results
+# Vẫn giữ lại thư mục cleaned_results để lưu trữ kết quả cuối cùng
+!cleaned_results/
+!cleaned_results/*.csv
+!cleaned_results/*.json
+
+# Generated charts
+!charts/*.png
+!charts/*.jpg
+!charts/*.pdf
+
+# Model files
+*.pt
+*.pth
+*.onnx
+*.h5
+*.hdf5
+*.pb
+*.tflite
+# Giữ lại một số file model cụ thể
+!models/*.pth
+!rainbow_dqn_ep*.pth
+!actor_critic_ep*.pth
+
+# Pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# Poetry
+poetry.lock
+
+# Mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# Cython
+*.c
+*.cpp
+*.html

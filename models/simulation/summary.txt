@@ -1,0 +1,7 @@
+=== SUMMARY RESULTS ===
+Average reward: 15.47 ± 0.00
+Average throughput: 7.90 tx/s ± 0.00
+Average latency: 17.60 ms ± 0.00
+Average energy: 79.00 mJ/tx ± 0.00
+Average security: 0.80 ± 0.00
+Cross-shard ratio: 0.27 ± 0.00

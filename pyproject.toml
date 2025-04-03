@@ -1,0 +1,28 @@
+[project]
+name = "qtrust"
+version = "0.1.0"
+description = "Blockchain sharding optimization with Deep Reinforcement Learning"
+authors = [
+    {name = "Qtrust Team"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=1.10.0",
+    "numpy>=1.19.0",
+    "pandas>=1.3.0",
+    "matplotlib>=3.4.0",
+    "tensorflow>=2.7.0",
+    "gym>=0.21.0",
+    "networkx>=2.6.0",
+    "tqdm>=4.62.0",
+    "scikit-learn>=1.0.0",
+    "pytest>=6.2.5",
+    "wandb>=0.12.0",
+    "seaborn>=0.11.0"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

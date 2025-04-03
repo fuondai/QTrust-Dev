@@ -1,0 +1,17 @@
+{
+    "episodes": 2,
+    "best_validation_reward": -Infinity,
+    "best_avg_reward": -Infinity,
+    "final_avg_reward": 8.111588260617822,
+    "training_time_seconds": 6.991914749145508,
+    "hyperparameters": {
+        "num_shards": 12,
+        "nodes_per_shard": 16,
+        "hidden_size": 256,
+        "learning_rate": 0.0005,
+        "batch_size": 128,
+        "gamma": 0.99,
+        "memory_size": 100000,
+        "prioritized_replay": true
+    }
+}
