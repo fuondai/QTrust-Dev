@@ -58,6 +58,7 @@ tmp_results/
 !docs/methodology/*.png
 !docs/methodology/*.jpg
 !docs/methodology/*.pdf
+!docs/exported_charts/
 
 # Testing
 .pytest_cache/
