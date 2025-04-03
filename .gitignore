@@ -54,11 +54,29 @@ tmp_results/
 
 # File hình ảnh tạm thời
 *.pdf
+*.png
+*.jpg
+*.jpeg
+
+# Giữ lại hình ảnh trong README
+!docs/exported_charts/*.png
+!docs/exported_charts/*.jpg
+!docs/exported_charts/*.jpeg
+!docs/exported_charts/*.pdf
 !docs/architecture/*.png
+!docs/architecture/*.jpg
+!docs/architecture/*.jpeg
+!docs/architecture/*.pdf
 !docs/methodology/*.png
 !docs/methodology/*.jpg
+!docs/methodology/*.jpeg
 !docs/methodology/*.pdf
-!docs/exported_charts/
+!png/*.png
+!png/*.jpg
+!png/*.jpeg
+!charts/*.png
+!charts/*.jpg
+!charts/*.pdf
 
 # Testing
 .pytest_cache/
@@ -147,11 +165,6 @@ tmp/
 !cleaned_results/
 !cleaned_results/*.csv
 !cleaned_results/*.json
-
-# Generated charts
-!charts/*.png
-!charts/*.jpg
-!charts/*.pdf
 
 # Model files
 *.pt
