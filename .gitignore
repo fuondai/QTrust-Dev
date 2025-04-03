@@ -59,18 +59,22 @@ tmp_results/
 *.jpeg
 
 # Giữ lại hình ảnh trong README
-!docs/exported_charts/*.png
-!docs/exported_charts/*.jpg
-!docs/exported_charts/*.jpeg
-!docs/exported_charts/*.pdf
-!docs/architecture/*.png
-!docs/architecture/*.jpg
-!docs/architecture/*.jpeg
-!docs/architecture/*.pdf
-!docs/methodology/*.png
-!docs/methodology/*.jpg
-!docs/methodology/*.jpeg
-!docs/methodology/*.pdf
+!data/docs/exported_charts/*.png
+!data/docs/exported_charts/*.jpg
+!data/docs/exported_charts/*.jpeg
+!data/docs/exported_charts/*.pdf
+!data/docs/architecture/*.png
+!data/docs/architecture/*.jpg
+!data/docs/architecture/*.jpeg
+!data/docs/architecture/*.pdf
+!data/docs/methodology/*.png
+!data/docs/methodology/*.jpg
+!data/docs/methodology/*.jpeg
+!data/docs/methodology/*.pdf
+!data/visualization/docs/exported_charts/*.png
+!data/visualization/docs/exported_charts/*.jpg
+!data/visualization/docs/exported_charts/*.jpeg
+!data/visualization/docs/exported_charts/*.pdf
 !png/*.png
 !png/*.jpg
 !png/*.jpeg
