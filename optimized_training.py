@@ -145,22 +145,20 @@ def setup_dqn_agent(env, args):
         batch_size=args.batch_size,
         gamma=args.gamma,
         tau=0.001,  # Target network update coefficient
-        hidden_layers=[args.hidden_size, args.hidden_size//2],
+        hidden_size=args.hidden_size,
         update_every=4,  # Update network every 4 steps
         device=args.device,
         epsilon_decay=args.epsilon_decay,
-        min_epsilon=args.epsilon_end,
+        epsilon_end=args.epsilon_end,
         buffer_size=args.memory_size,
-        prioritized_replay=True,  # Use Prioritized Experience Replay
+        use_prioritized_replay=True,  # Use Prioritized Experience Replay
         alpha=0.6,  # Alpha for prioritized replay
         beta_start=0.4,   # Beta for prioritized replay
-        dueling=True,  # Use Dueling DQN for better learning efficiency
-        clip_gradients=True,  # Limit gradients to stabilize learning
-        grad_clip_value=1.0  # Gradient clipping value
+        use_dueling=True  # Use Dueling DQN for better learning efficiency
     )
     
     print(f"Created DQN Agent with {state_size} states and {total_actions} actions.")
-    print(f"Using Prioritized Replay: {agent.prioritized_replay}")
+    print(f"Using Prioritized Replay: {agent.use_prioritized_replay}")
     
     # Create wrapper for agent to convert from single action to MultiDiscrete action
     class DQNAgentWrapper:

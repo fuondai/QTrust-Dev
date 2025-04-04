@@ -9,11 +9,12 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, Optional
 import os
 import sys
 from qtrust.consensus.adaptive_consensus import AdaptiveConsensus
 from qtrust.consensus.adaptive_pos import AdaptivePoSManager
+from ..utils.paths import get_chart_path  # Import hàm get_chart_path mới
 
 
 class EnergySimulation:
@@ -116,18 +117,15 @@ class EnergySimulation:
             is_cross_shard = random.random() < 0.3  # 30% are cross-shard transactions
             
             # Execute consensus
-            result, protocol, latency, energy = consensus.execute_consensus(
+            success, latency, energy, protocol = consensus.execute_consensus(
                 transaction_value=tx_value,
-                congestion=self.congestion_levels[shard_id],
-                trust_scores=shard_validators,
-                network_stability=0.7,
-                cross_shard=is_cross_shard,
-                shard_id=shard_id
+                shard_id=shard_id,
+                trust_scores=shard_validators
             )
             
             # Record results
             total_energy += energy
-            if result:
+            if success:
                 successful_txs += 1
         
         return {
@@ -293,10 +291,11 @@ class EnergySimulation:
         
         # Save chart
         plt.tight_layout()
-        plt.savefig(os.path.join(self.save_dir, "energy_optimization_results.png"))
+        full_path = get_chart_path("energy_optimization_results.png", "simulation")
+        plt.savefig(full_path)
         plt.close()
         
-        print(f"Results chart saved to {self.save_dir}/energy_optimization_results.png")
+        print(f"Results chart saved to {full_path}")
 
 
 def main():

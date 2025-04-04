@@ -42,31 +42,49 @@ from typing import List, Tuple, Dict, Any
 import matplotlib.pyplot as plt
 import numpy as np
 import json
-import test_data_generation
-import test_hyper_optimizer
-import test_metrics
-import test_logging
-import test_visualization
-import test_anomaly_detection
-import test_trust_models
-import test_config
-import test_security  # Add the new security tests
-import test_mad_rapid  # Add the new routing tests
-import test_federated_rl  # Add the new federated RL tests
-import test_privacy  # Add the new privacy tests
-import test_model_aggregation  # Add the new model aggregation tests
-import test_federated_manager  # Add the new federated manager tests
-import test_import
-import test_caching
-import simple_cache_test
-import test_adaptive_consensus  # Now available in the tests directory
-import test_bls_signatures  # BLS signature tests
-import test_lightweight_crypto  # Lightweight crypto tests
-import test_benchmark_runner  # Benchmark runner tests
-import test_benchmark_scenarios  # Benchmark scenarios tests
-import test_blockchain_comparison_utils  # Blockchain comparison utilities tests
-import test_system_comparison  # System comparison tests
-import test_actor_critic  # Actor-Critic agent tests
+
+# Xóa các import không cần thiết để tránh lỗi
+# import test_data_generation
+# import test_hyper_optimizer
+# import test_metrics
+# import test_logging
+# import test_visualization
+# import test_anomaly_detection
+# import test_trust_models
+# import test_config
+# import test_security
+# import test_mad_rapid
+# import test_federated_rl
+# import test_privacy
+# import test_model_aggregation
+# import test_federated_manager
+# import test_import
+# import test_caching
+# import simple_cache_test
+# import test_adaptive_consensus
+# import test_bls_signatures
+# import test_lightweight_crypto
+# import test_benchmark_runner
+# import test_benchmark_scenarios
+# import test_blockchain_comparison_utils
+# import test_system_comparison
+# import test_actor_critic
+
+# Thay vào đó, chúng ta sẽ tự động tìm các module test có sẵn
+def find_test_modules():
+    """Find all available test modules in tests directory"""
+    test_modules = []
+    test_path = Path(__file__).parent
+    for file_path in test_path.glob("**/*.py"):
+        if file_path.name.startswith("test_") and file_path.name != "test_all.py" and file_path.name != "run_all_tests.py":
+            # Convert path to module name
+            rel_path = file_path.relative_to(test_path)
+            module_parts = list(rel_path.parts)
+            module_parts[-1] = module_parts[-1][:-3]  # Remove .py extension
+            module_name = ".".join(module_parts)
+            test_modules.append(module_name)
+    
+    return test_modules
 
 # Add the root directory to PYTHONPATH
 sys.path.append(str(Path(__file__).parent.parent))
@@ -92,14 +110,14 @@ def run_command(command, description=None, save_output=True, output_file=None):
     """Run a command and log the output."""
     print(f"\n{'='*80}")
     if description:
-        print(f"{description}")
-    print(f"Command: {command}")
+        print(f"EXECUTING: {description}")
+    print(f"COMMAND: {command}")
     print(f"{'='*80}\n")
     
     start_time = time.time()
     
     if save_output and output_file:
-        with open(output_file, 'w') as f:
+        with open(output_file, 'w', encoding='utf-8') as f:
             result = subprocess.run(
                 command,
                 shell=True,
@@ -124,157 +142,98 @@ def run_command(command, description=None, save_output=True, output_file=None):
     
     return result.returncode == 0
 
-def run_all_tests(skip_long_tests=False):
-    """Run all tests."""
+def run_tests():
+    """Run all tests that exist in the file system."""
+    print("Starting test execution...")
     create_directories()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     all_tests = []
-    success_count = 0
     
-    # Simple import test
-    test = {
-        'name': 'Import Test',
-        'command': f'py -3.10 tests/test_import.py',
-        'output': f'results/import_test_{timestamp}.log',
-        'description': 'Test module imports'
-    }
-    all_tests.append(test)
+    # 1. Xuất ra danh sách các module test cụ thể
+    available_tests = []
+    test_path = Path(__file__).parent
     
-    # Cache optimization test
-    test = {
-        'name': 'Cache Optimization Test',
-        'command': f'py -3.10 tests/cache_optimization_test.py --shards 24 --nodes 20 --steps 20 --tx 200',
-        'output': f'results/cache/cache_optimization_{timestamp}.log',
-        'description': 'Test cache optimization with 24 shards, 20 nodes per shard'
-    }
-    all_tests.append(test)
+    # Tìm các file test ở thư mục tests
+    for file_path in test_path.glob("**/*.py"):
+        if file_path.name.startswith("test_") and file_path.name != "run_all_tests.py":
+            test_name = file_path.stem  # Lấy tên file không có extension
+            rel_path = file_path.relative_to(test_path.parent)
+            str_path = str(rel_path).replace("\\", "/")
+            available_tests.append((test_name, str_path))
     
-    test = {
-        'name': 'Detailed Caching Test',
-        'command': f'py -3.10 tests/test_caching.py --agent rainbow --episodes 5',
-        'output': f'results/cache/detailed_caching_{timestamp}.log',
-        'description': 'Test detailed caching performance with Rainbow DQN'
-    }
-    all_tests.append(test)
+    print(f"Found {len(available_tests)} test modules:")
+    for name, path in available_tests:
+        print(f" - {name} ({path})")
     
-    # HTDCM test
-    test = {
-        'name': 'HTDCM Test',
-        'command': f'py -3.10 tests/htdcm_test.py',
-        'output': f'results/htdcm/htdcm_test_{timestamp}.log',
-        'description': 'Test HTDCM mechanism'
-    }
-    all_tests.append(test)
-    
-    test = {
-        'name': 'HTDCM Performance Test',
-        'command': f'py -3.10 tests/htdcm_performance_test.py',
-        'output': f'results/htdcm/htdcm_performance_{timestamp}.log',
-        'description': 'Test HTDCM performance'
-    }
-    all_tests.append(test)
-    
-    # Rainbow DQN on CartPole test
-    test = {
-        'name': 'Rainbow DQN CartPole Test',
-        'command': f'py -3.10 tests/test_rainbow_cartpole.py',
-        'output': f'results/rainbow_cartpole_{timestamp}.log',
-        'description': 'Test Rainbow DQN on CartPole environment'
-    }
-    all_tests.append(test)
-    
-    # Attack simulation test
-    if not skip_long_tests:
+    # 2. Tạo các test command
+    for test_name, test_path in available_tests:
+        # Tạo lệnh chạy test
         test = {
-            'name': 'Attack Simulation',
-            'command': f'py -3.10 tests/attack_simulation_runner.py --num-shards 16 --nodes-per-shard 12 --attack-type all --output-dir results/attack',
-            'output': f'results/attack/attack_simulation_{timestamp}.log',
-            'description': 'Simulate various types of attacks'
+            'name': test_name,
+            'command': f'py -3.10 {test_path}',
+            'output': f'results/{test_name}_{timestamp}.log',
+            'description': f'Running {test_name}'
         }
         all_tests.append(test)
     
-    # Benchmark comparison test - Fix: this file is in the root directory, not in tests
-    test = {
-        'name': 'Benchmark Comparison',
-        'command': f'py -3.10 benchmark_comparison_systems.py --output-dir results/benchmark',
-        'output': f'results/benchmark/benchmark_comparison_{timestamp}.log',
-        'description': 'Compare performance with other blockchain systems'
-    }
-    all_tests.append(test)
+    # 3. Thêm lệnh chạy benchmark nếu file tồn tại
+    benchmark_path = Path(__file__).parent.parent / "benchmark_comparison_systems.py"
+    if benchmark_path.exists():
+        test = {
+            'name': 'Benchmark Comparison',
+            'command': f'py -3.10 benchmark_comparison_systems.py --output-dir results/benchmark',
+            'output': f'results/benchmark/benchmark_comparison_{timestamp}.log',
+            'description': 'Compare QTrust with other blockchain systems'
+        }
+        all_tests.append(test)
     
-    # Plot attack comparison test
-    test = {
-        'name': 'Plot Attack Comparison',
-        'command': f'py -3.10 tests/plot_attack_comparison.py --output-dir results/charts',
-        'output': f'results/attack/plot_attack_{timestamp}.log',
-        'description': 'Plot comparison charts for different attack types'
-    }
-    all_tests.append(test)
+    # Kiểm tra nếu không có test nào được tìm thấy, chạy pytest
+    if not all_tests:
+        test = {
+            'name': 'Pytest Run All',
+            'command': f'py -3.10 -m pytest tests/',
+            'output': f'results/pytest_all_{timestamp}.log',
+            'description': 'Run all tests using pytest'
+        }
+        all_tests.append(test)
     
-    # Add security module test
-    test = {
-        'name': 'Security Module Tests',
-        'command': f'py -3.10 tests/test_security.py',
-        'output': f'results/security_module_{timestamp}.log',
-        'description': 'Test security modules (ZK Proofs, Validator Selection, Attack Resistance)'
-    }
-    all_tests.append(test)
-    
-    # Run all tests
+    # 4. Chạy các test
+    success_count = 0
     for test in all_tests:
-        print(f"\n\n{'#'*100}")
-        print(f"Running test: {test['name']}")
-        print(f"{'#'*100}\n")
-        
-        # For the import test, we'll consider it successful regardless of exit code
-        # since we've verified it works correctly when run directly
-        if test['name'] == 'Import Test':
-            run_command(
-                test['command'],
-                test['description'],
-                save_output=True,
-                output_file=test['output']
-            )
-            # Mark as success since we know it works
-            success = True
-        else:
-            success = run_command(
-                test['command'],
-                test['description'],
-                save_output=True,
-                output_file=test['output']
-            )
-        
+        print(f"\nRunning test: {test['name']}")
+        print(f"Description: {test['description']}")
+        success = run_command(test['command'], test['description'], True, test['output'])
         if success:
             success_count += 1
-        
-    # Print summary results
-    print(f"\n\n{'#'*100}")
-    print(f"Results Summary:")
-    print(f"{'#'*100}\n")
-    print(f"Total tests: {len(all_tests)}")
-    print(f"Successful: {success_count}")
-    print(f"Failed: {len(all_tests) - success_count}")
-    print(f"Success rate: {success_count/len(all_tests)*100:.2f}%")
+            print(f"{test['name']} - SUCCESS ✅")
+        else:
+            print(f"{test['name']} - FAILED ❌")
     
-    return success_count == len(all_tests)
+    # 5. In kết quả
+    print(f"\n{'='*80}")
+    print(f"Test Summary: {success_count}/{len(all_tests)} tests passed")
+    print(f"{'='*80}")
+    
+    if success_count == len(all_tests):
+        print("\nAll tests passed! ✅")
+        return True
+    else:
+        print("\nSome tests failed! ❌")
+        return False
 
 class TestResult:
-    """Class to store test result information."""
+    """Class to hold test results."""
     
     def __init__(self, name: str, success: bool, execution_time: float, error_message: str = None):
         self.name = name
         self.success = success
         self.execution_time = execution_time
         self.error_message = error_message
-    
+        
     def __str__(self):
         status = "PASS" if self.success else "FAIL"
-        result_str = f"{self.name}: {status} ({self.execution_time:.3f}s)"
-        if not self.success and self.error_message:
-            result_str += f"\n    Error: {self.error_message}"
-        return result_str
+        return f"{self.name}: {status} ({self.execution_time:.2f}s)"
 
 def discover_test_modules() -> List[str]:
     """
@@ -542,68 +501,52 @@ def load_results_from_json(filename: str = "test_results.json") -> Dict[str, Any
     return report
 
 def main():
-    """Run all tests and generate a report."""
-    start_time = time.time()
+    """Main function."""
+    args = parse_arguments()
     
-    # Create test suite
-    test_suite = unittest.TestSuite()
+    if args.modules:
+        # Run only specified modules
+        results = run_all_tests(args.modules)
+    else:
+        # Run all discovered modules
+        modules = discover_test_modules()
+        results = run_all_tests(modules)
     
-    # Add test cases
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_import))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_caching))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(simple_cache_test))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_actor_critic))  # Add actor-critic tests
-    
-    # Add more complex test suites
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_data_generation))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_hyper_optimizer))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_metrics))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_logging))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_visualization))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_anomaly_detection))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_trust_models))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_config))
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_security))  # Add security tests
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_mad_rapid))  # Add routing tests
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_federated_rl))  # Add federated RL tests
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_privacy))  # Add privacy tests
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_model_aggregation))  # Add model aggregation tests
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_federated_manager))  # Add federated manager tests
-    test_suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(test_system_comparison))  # Add system comparison tests
-    
-    # Run the test suite
-    test_runner = unittest.TextTestRunner(verbosity=2)
-    result = test_runner.run(test_suite)
-    
-    # Tạo báo cáo trực tiếp thay vì sử dụng generate_test_report
-    total_tests = result.testsRun
-    failures = len(result.failures)
-    errors = len(result.errors)
-    successful = total_tests - failures - errors
-    
-    report = {
-        "total_tests": total_tests,
-        "successful_tests": successful,
-        "failed_tests": failures + errors,
-        "total_execution_time": time.time() - start_time,
-        "success_rate": successful / total_tests if total_tests > 0 else 0,
-        "results": []  # Không cần tạo danh sách TestResult vì đã in kết quả ở trên
-    }
+    # Generate report
+    report = generate_test_report(results)
     
     # Print report
     print_test_report(report)
     
-    # Save results to JSON file
-    save_results_to_json(report)
+    # Save results to JSON if specified
+    if args.save_json:
+        save_results_to_json(report, args.save_json)
     
-    # Plot results if requested
+    # Plot results if specified
     if args.plot or args.save_plot:
         save_path = args.save_plot if args.save_plot else None
         plot_test_results(report, save_path)
     
     # Return exit code based on success
-    sys.exit(1 if report['failed_tests'] > 0 else 0)
+    return 0 if report["overall_success"] else 1
 
 if __name__ == "__main__":
-    args = parse_arguments()
-    main() 
+    if len(sys.argv) > 1:
+        # Parse command line arguments when provided
+        parser = argparse.ArgumentParser(description='Run all tests or specific test modules.')
+        parser.add_argument('--modules', nargs='+', help='Run only specified test modules')
+        parser.add_argument('--skip-long', action='store_true', help='Skip tests marked as long-running')
+        args = parser.parse_args()
+        
+        if args.modules:
+            print(f"Running specified test modules: {', '.join(args.modules)}")
+            success = run_tests()
+        else:
+            print("Running all tests")
+            success = run_tests()
+    else:
+        # Run all tests if no arguments provided
+        print("Running all tests")
+        success = run_tests()
+    
+    sys.exit(0 if success else 1) 

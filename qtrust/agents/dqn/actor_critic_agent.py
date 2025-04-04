@@ -296,9 +296,6 @@ class ActorCriticAgent:
         else:
             current_values = self.critic(states, [actions_one_hot])
             current_distributions = None
-            
-        # Print shapes for debugging
-        print(f"Current values shape: {current_values[0].shape}")
         
         # Get next actions from target actor
         with torch.no_grad():
@@ -313,18 +310,12 @@ class ActorCriticAgent:
                 critic_loss = self.calculate_distributional_loss(current_distributions[0], target_values, next_distributions[0])
             else:
                 next_values = self.target_critic(next_states, [next_actions_one_hot])
-                # Print shapes for debugging
-                print(f"Next values shape: {next_values[0].shape}")
-                print(f"Rewards shape: {rewards.shape}")
-                print(f"Dones shape: {dones.shape}")
                 
                 # Ensure rewards and dones have correct shape
                 rewards = rewards.view(-1, 1)
                 dones = dones.view(-1, 1)
                 
                 target_values = rewards + (1 - dones) * self.gamma * next_values[0]
-                # Print target values shape
-                print(f"Target values shape: {target_values.shape}")
                 
                 # Ensure target_values has same shape as current_values[0]
                 target_values = target_values.view(-1, 1)  # [batch_size, 1]
@@ -425,7 +416,7 @@ class ActorCriticAgent:
         """
         # Create dummy action for critic
         action = torch.zeros(state_tensor.size(0), self.action_size).to(self.device)
-        value, _ = self.critic_target(state_tensor, [action])
+        value, _ = self.target_critic(state_tensor, [action])
         return value[0]
     
     def save(self, filepath: str) -> bool:
@@ -509,9 +500,9 @@ class ActorCriticAgent:
             'avg_actor_loss': np.mean(self.actor_loss_history[-100:]) if self.actor_loss_history else float('nan'),
             'avg_critic_loss': np.mean(self.critic_loss_history[-100:]) if self.critic_loss_history else float('nan'),
             'avg_entropy': np.mean(self.entropy_history[-100:]) if self.entropy_history else float('nan'),
-            'cache_hits': self.cache_hits,
-            'cache_misses': self.cache_misses,
-            'hit_rate': self.cache_hits / (self.cache_hits + self.cache_misses) if (self.cache_hits + self.cache_misses) > 0 else 0,
+            'cache_hits': getattr(self, 'cache_hits', 0),
+            'cache_misses': getattr(self, 'cache_misses', 0),
+            'cache_hit_ratio': getattr(self, 'cache_hits', 0) / (getattr(self, 'cache_hits', 0) + getattr(self, 'cache_misses', 1)) if (getattr(self, 'cache_hits', 0) + getattr(self, 'cache_misses', 0)) > 0 else 0,
             'total_steps': self.total_steps,
             'train_count': self.train_count
         }

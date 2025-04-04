@@ -18,15 +18,28 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
-def ensure_output_dir():
-    """Create output directory for diagrams."""
-    os.makedirs('docs/architecture', exist_ok=True)
-    os.makedirs('docs/exported_charts', exist_ok=True)
+def ensure_chart_dirs():
+    """Ensure all chart directories exist."""
+    chart_dirs = [
+        'charts',
+        'charts/architecture',
+        'charts/visualization',
+        'charts/benchmark',
+        'charts/simulation'
+    ]
+    for directory in chart_dirs:
+        os.makedirs(directory, exist_ok=True)
+    print("Chart directories created or verified.")
+
+def get_chart_path(filename, category='architecture'):
+    """Get the path for saving a chart."""
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    chart_dir = os.path.join(base_dir, 'charts', category)
+    os.makedirs(chart_dir, exist_ok=True)
+    return os.path.join(chart_dir, filename)
 
 def create_architecture_diagram():
     """Create the architecture diagram for QTrust system."""
-    ensure_output_dir()
-    
     # Create figure
     plt.figure(figsize=(16, 12))
     ax = plt.gca()
@@ -34,16 +47,16 @@ def create_architecture_diagram():
     # Create directed graph
     G = nx.DiGraph()
     
-    # Add nodes
+    # Add nodes - repositioned to create clearer diagrams
     nodes = [
         ('QTrust', {'pos': (0, 0)}),
-        ('BlockchainEnv', {'pos': (-2, -2)}),
+        ('BlockchainEnv', {'pos': (-4, -2)}),
         ('DQNAgents', {'pos': (0, -2)}),
-        ('AdaptiveConsensus', {'pos': (2, -2)}),
-        ('MADRAPIDRouter', {'pos': (-3, -4)}),
-        ('HTDCM', {'pos': (-1, -4)}),
-        ('FederatedLearning', {'pos': (1, -4)}),
-        ('CachingSystem', {'pos': (3, -4)})
+        ('AdaptiveConsensus', {'pos': (4, -2)}),
+        ('MADRAPIDRouter', {'pos': (-4, -4)}),
+        ('HTDCM', {'pos': (0, -4)}),
+        ('FederatedLearning', {'pos': (4, -4)}),
+        ('CachingSystem', {'pos': (0, -6)})
     ]
     
     G.add_nodes_from(nodes)
@@ -63,255 +76,294 @@ def create_architecture_diagram():
     }
     
     node_sizes = {
-        'QTrust': 2500,
-        'BlockchainEnv': 2000,
-        'DQNAgents': 2000,
-        'AdaptiveConsensus': 2000,
-        'MADRAPIDRouter': 1800,
-        'HTDCM': 1800,
-        'FederatedLearning': 1800,
-        'CachingSystem': 1800
+        'QTrust': 3000,
+        'BlockchainEnv': 2500,
+        'DQNAgents': 2500,
+        'AdaptiveConsensus': 2500,
+        'MADRAPIDRouter': 2200,
+        'HTDCM': 2200,
+        'FederatedLearning': 2200,
+        'CachingSystem': 2200
     }
     
-    widths = [2.5, 2.5, 2.5, 2.0, 2.0, 2.0, 2.0]
-    heights = [1.2, 1.2, 1.2, 1.0, 1.0, 1.0, 1.0]
-    
-    # Draw nodes with different shapes (using rectangle shapes)
-    node_groups = [
-        ['QTrust'],
-        ['BlockchainEnv', 'DQNAgents', 'AdaptiveConsensus'],
-        ['MADRAPIDRouter', 'HTDCM', 'FederatedLearning', 'CachingSystem']
-    ]
-    
-    # Draw nodes using different node types
-    for group in node_groups:
+    # Draw nodes using different node types - increased size for better visibility
+    for node, data in nodes:
         nx.draw_networkx_nodes(
             G, pos,
-            nodelist=group,
-            node_color=[node_colors[n] for n in group],
-            node_size=[node_sizes[n] for n in group],
+            nodelist=[node],
+            node_color=node_colors[node],
+            node_size=node_sizes[node],
             alpha=0.8,
-            node_shape='s',  # Using 's' for square shape instead of 'rectangle'
+            node_shape='o',  # Chuyển sang hình tròn để rõ ràng hơn
             edgecolors='black',
             linewidths=2
         )
     
-    # Add edges
+    # Add edges - improved connection structure
     edges = [
         ('QTrust', 'BlockchainEnv'),
         ('QTrust', 'DQNAgents'),
         ('QTrust', 'AdaptiveConsensus'),
         ('BlockchainEnv', 'MADRAPIDRouter'),
-        ('BlockchainEnv', 'HTDCM'),
+        ('BlockchainEnv', 'DQNAgents'),
+        ('DQNAgents', 'AdaptiveConsensus'),
         ('DQNAgents', 'FederatedLearning'),
-        ('AdaptiveConsensus', 'CachingSystem'),
+        ('AdaptiveConsensus', 'FederatedLearning'),
         ('MADRAPIDRouter', 'HTDCM'),
-        ('HTDCM', 'FederatedLearning'),
+        ('HTDCM', 'CachingSystem'),
         ('FederatedLearning', 'CachingSystem')
     ]
     
     G.add_edges_from(edges)
     
-    # Draw edges with different styles
+    # Classify edges
+    primary_edges = edges[:3]  # Core connections
+    secondary_edges = edges[3:8]  # Main functional connections
+    tertiary_edges = edges[8:]  # Support connections
+    
+    # Draw edges với độ rõ ràng khác nhau theo tầng
     nx.draw_networkx_edges(
         G, pos,
-        edgelist=edges[:3],
-        width=3,
-        alpha=0.7,
+        edgelist=primary_edges,
+        width=3.5,
+        alpha=0.9,
         edge_color='#2C3E50',
         style='solid',
-        arrowsize=20,
-        arrowstyle='->'
+        arrowsize=25,
+        arrowstyle='-|>', # Clearer arrows
+        connectionstyle='arc3,rad=0.1'  # Slight curve to avoid overlapping
     )
     
     nx.draw_networkx_edges(
         G, pos,
-        edgelist=edges[3:7],
+        edgelist=secondary_edges,
         width=2.5,
-        alpha=0.7,
+        alpha=0.8,
         edge_color='#7F8C8D',
         style='solid',
-        arrowsize=15,
-        arrowstyle='->'
+        arrowsize=20,
+        arrowstyle='-|>',
+        connectionstyle='arc3,rad=0.1'
     )
     
     nx.draw_networkx_edges(
         G, pos,
-        edgelist=edges[7:],
+        edgelist=tertiary_edges,
         width=2,
-        alpha=0.6,
+        alpha=0.7,
         edge_color='#95A5A6',
         style='dashed',
         arrowsize=15,
-        arrowstyle='->'
+        arrowstyle='-|>',
+        connectionstyle='arc3,rad=0.1'
     )
     
-    # Add labels
+    # Add labels - increased size and clarity
     nx.draw_networkx_labels(
         G, pos,
-        font_size=14,
+        font_size=16,
         font_family='sans-serif',
-        font_weight='bold'
+        font_weight='bold',
+        font_color='white',  # White to stand out against node background
+        bbox=dict(facecolor='black', alpha=0.2, edgecolor='none')
     )
     
-    # Descriptions for each module
+    # Brief description for each module
     descriptions = {
-        'QTrust': 'Core Framework: Coordinates all component interactions',
-        'BlockchainEnv': 'Blockchain Environment: Simulates network with sharding',
-        'DQNAgents': 'DQN Agents: Implements Rainbow DQN for optimization',
-        'AdaptiveConsensus': 'Adaptive Consensus: Selects optimal consensus protocol',
-        'MADRAPIDRouter': 'MADRAPID Router: Smart transaction routing between shards',
-        'HTDCM': 'HTDCM: Hierarchical Trust-based Data Center Mechanism',
-        'FederatedLearning': 'Federated Learning: Privacy-preserving distributed training',
-        'CachingSystem': 'Caching System: Optimizes access with intelligent strategies'
+        'QTrust': 'Core Framework',
+        'BlockchainEnv': 'Sharding Blockchain Environment',
+        'DQNAgents': 'Reinforcement Learning Agents',
+        'AdaptiveConsensus': 'Adaptive Protocol Selection',
+        'MADRAPIDRouter': 'Transaction Routing System',
+        'HTDCM': 'Trust-based Security Mechanism',
+        'FederatedLearning': 'Decentralized Training System',
+        'CachingSystem': 'Performance Optimization Cache'
     }
     
-    # Add descriptions below nodes
+    # Add descriptions next to nodes instead of below them
     for node, desc in descriptions.items():
         x, y = pos[node]
+        offset_x = 0
+        offset_y = 0
+        
+        # Adjust text position based on node position
+        if 'QTrust' in node:
+            offset_y = 0.7
+        elif 'BlockchainEnv' in node:
+            offset_x = -1.0
+        elif 'DQNAgents' in node:
+            offset_y = 0.7
+        elif 'AdaptiveConsensus' in node:
+            offset_x = 1.0
+        elif 'MADRAPIDRouter' in node:
+            offset_x = -1.0
+        elif 'HTDCM' in node:
+            offset_y = -0.7
+        elif 'FederatedLearning' in node:
+            offset_x = 1.0
+        elif 'CachingSystem' in node:
+            offset_y = -0.7
+            
         plt.text(
-            x, y-0.3,
+            x + offset_x, y + offset_y,
             desc,
-            fontsize=10,
+            fontsize=12,
             ha='center',
             va='center',
             color='black',
-            bbox=dict(facecolor='white', alpha=0.7, edgecolor='none', boxstyle='round,pad=0.5')
+            bbox=dict(facecolor='white', alpha=0.9, edgecolor='gray', boxstyle='round,pad=0.5')
         )
     
-    # Set plot limits and remove axis
-    plt.xlim(-4.5, 4.5)
-    plt.ylim(-5.5, 1.5)
+    # Define graph boundaries
+    plt.xlim(-6, 6)
+    plt.ylim(-7, 1.5)
     plt.axis('off')
     
     # Add title
-    plt.title('QTrust Architecture: Component Relationship Diagram', fontsize=18, pad=20)
+    plt.title('QTrust Architecture', fontsize=22, pad=20, fontweight='bold')
     
-    # Add legend for layers
+    # Add legend for component types
     legend_elements = [
-        plt.Line2D([0], [0], marker='s', color='w', markerfacecolor='#3498DB', 
-                  markersize=15, label='Core Layer'),
-        plt.Line2D([0], [0], marker='s', color='w', markerfacecolor='#2ECC71', 
-                  markersize=15, label='Environment Layer'),
-        plt.Line2D([0], [0], marker='s', color='w', markerfacecolor='#9B59B6', 
-                  markersize=15, label='Intelligence Layer'),
-        plt.Line2D([0], [0], marker='s', color='w', markerfacecolor='#F1C40F', 
-                  markersize=15, label='Consensus Layer'),
-        plt.Line2D([0], [0], marker='s', color='w', markerfacecolor='#E74C3C', 
-                  markersize=15, label='Routing Layer'),
-        plt.Line2D([0], [0], marker='s', color='w', markerfacecolor='#1ABC9C', 
-                  markersize=15, label='Trust Layer'),
-        plt.Line2D([0], [0], marker='s', color='w', markerfacecolor='#34495E', 
-                  markersize=15, label='Learning Layer'),
-        plt.Line2D([0], [0], marker='s', color='w', markerfacecolor='#F39C12', 
-                  markersize=15, label='Caching Layer')
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='#3498DB', 
+                  markersize=15, label='Core Component'),
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='#2ECC71', 
+                  markersize=15, label='Environment'),
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='#9B59B6', 
+                  markersize=15, label='Intelligence'),
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='#F1C40F', 
+                  markersize=15, label='Consensus'),
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='#E74C3C', 
+                  markersize=15, label='Routing'),
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='#1ABC9C', 
+                  markersize=15, label='Security'),
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='#34495E', 
+                  markersize=15, label='Learning'),
+        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='#F39C12', 
+                  markersize=15, label='Caching')
     ]
     
     plt.legend(handles=legend_elements, loc='upper center', bbox_to_anchor=(0.5, 1.15), 
-               ncol=4, fancybox=True, shadow=True)
-    
-    # Add watermark
-    plt.figtext(0.5, 0.01, 'QTrust - Advanced Blockchain Research Framework', 
-                ha='center', fontsize=10, color='gray')
+               ncol=4, fancybox=True, shadow=True, fontsize=12)
     
     # Save figure
     plt.tight_layout()
-    plt.savefig('docs/architecture/qtrust_architecture.png', dpi=300, bbox_inches='tight')
-    plt.savefig('docs/exported_charts/architecture_diagram.png', dpi=300, bbox_inches='tight')
     
-    print("Architecture diagram created: docs/architecture/qtrust_architecture.png")
-    print("Architecture diagram copied to: docs/exported_charts/architecture_diagram.png")
+    # Save diagram to charts/architecture directory
+    architecture_path = get_chart_path('qtrust_architecture.png', 'architecture')
+    plt.savefig(architecture_path, dpi=300, bbox_inches='tight')
+    
+    print(f"Architecture diagram created: {architecture_path}")
 
 def create_system_overview():
     """Create a system overview diagram for QTrust."""
     # Create figure
-    plt.figure(figsize=(14, 8))
+    plt.figure(figsize=(14, 10))
     
     # Create central area for 'QTrust Core'
-    core_box = plt.Rectangle((-4, -3), 8, 6, fill=True, alpha=0.1, 
-                             facecolor='#3498db', edgecolor='#2980b9', lw=2)
+    core_box = plt.Rectangle((-5, -4), 10, 8, fill=True, alpha=0.1, 
+                             facecolor='#3498db', edgecolor='#2980b9', lw=3, 
+                             zorder=0, linestyle='--')
     plt.gca().add_patch(core_box)
-    plt.text(0, 2.5, 'QTrust Core', fontsize=18, fontweight='bold', 
+    plt.text(0, 3, 'QTrust Framework', fontsize=22, fontweight='bold', 
              horizontalalignment='center', color='#2980b9')
     
-    # Main modules
+    # Main modules - improved position and information
     modules = [
-        {'name': 'Blockchain Environment', 'pos': (-2.5, 1), 'color': '#e74c3c'},
-        {'name': 'Deep Reinforcement Learning', 'pos': (2.5, 1), 'color': '#2ecc71'},
-        {'name': 'Federated Learning', 'pos': (-2.5, -1), 'color': '#34495e'},
-        {'name': 'HTDCM Security', 'pos': (2.5, -1), 'color': '#1abc9c'},
+        {'name': 'Blockchain\nEnvironment', 'pos': (-3, 1), 'color': '#e74c3c', 'size': (3, 2)},
+        {'name': 'Reinforcement\nLearning', 'pos': (3, 1), 'color': '#2ecc71', 'size': (3, 2)},
+        {'name': 'Federated\nLearning', 'pos': (-3, -2), 'color': '#34495e', 'size': (3, 2)},
+        {'name': 'Security\nLayer', 'pos': (3, -2), 'color': '#1abc9c', 'size': (3, 2)},
     ]
     
-    # Draw main modules
+    # Draw main modules with clearer shapes
     for module in modules:
         x, y = module['pos']
-        rect = plt.Rectangle((x-1.5, y-0.6), 3, 1.2, fill=True, alpha=0.7,
-                            facecolor=module['color'], edgecolor='black', lw=1.5)
+        width, height = module['size']
+        rect = plt.Rectangle((x-width/2, y-height/2), width, height, fill=True, alpha=0.8,
+                           facecolor=module['color'], edgecolor='black', lw=2,
+                           zorder=1)
         plt.gca().add_patch(rect)
-        plt.text(x, y, module['name'], fontsize=12, fontweight='bold',
+        plt.text(x, y, module['name'], fontsize=14, fontweight='bold',
                 horizontalalignment='center', verticalalignment='center', color='white')
     
-    # External components
-    external_components = [
-        {'name': 'Transaction Pool', 'pos': (-7, 1.5), 'color': '#f39c12'},
-        {'name': 'Consensus Protocols', 'pos': (-7, -1.5), 'color': '#9b59b6'},
-        {'name': 'Shards', 'pos': (7, 1.5), 'color': '#7f8c8d'},
-        {'name': 'Network Nodes', 'pos': (7, -1.5), 'color': '#16a085'},
+    # External components 
+    ext_components = [
+        {'name': 'Network', 'pos': (-7, 0), 'color': '#8e44ad'},
+        {'name': 'Clients', 'pos': (0, -6), 'color': '#d35400'},
+        {'name': 'Validators', 'pos': (7, 0), 'color': '#16a085'},
+        {'name': 'Data\nStores', 'pos': (0, 6), 'color': '#c0392b'}
     ]
     
     # Draw external components
-    for comp in external_components:
+    for comp in ext_components:
         x, y = comp['pos']
-        rect = plt.Rectangle((x-1.5, y-0.6), 3, 1.2, fill=True, alpha=0.7,
-                            facecolor=comp['color'], edgecolor='black', lw=1.5)
-        plt.gca().add_patch(rect)
+        circle = plt.Circle((x, y), 1.2, fill=True, alpha=0.7,
+                           facecolor=comp['color'], edgecolor='black', lw=1.5, zorder=1)
+        plt.gca().add_patch(circle)
         plt.text(x, y, comp['name'], fontsize=12, fontweight='bold',
                 horizontalalignment='center', verticalalignment='center', color='white')
     
-    # Add connections
+    # Connect components với arrows
     connections = [
-        {'start': (-4, 1), 'end': (-5.5, 1.5), 'label': 'Process'},
-        {'start': (-4, -1), 'end': (-5.5, -1.5), 'label': 'Select'},
-        {'start': (4, 1), 'end': (5.5, 1.5), 'label': 'Optimize'},
-        {'start': (4, -1), 'end': (5.5, -1.5), 'label': 'Secure'},
+        # External to internal
+        {'start': (-7, 0), 'end': (-3, 1), 'color': '#8e44ad', 'style': '-', 'width': 2},
+        {'start': (7, 0), 'end': (3, 1), 'color': '#16a085', 'style': '-', 'width': 2},
+        {'start': (0, 6), 'end': (-3, 1), 'color': '#c0392b', 'style': '-', 'width': 2},
+        {'start': (0, -6), 'end': (3, -2), 'color': '#d35400', 'style': '-', 'width': 2},
+        
+        # Internal connections
+        {'start': (-3, 1), 'end': (3, 1), 'color': 'gray', 'style': '--', 'width': 1.5},
+        {'start': (-3, 1), 'end': (-3, -2), 'color': 'gray', 'style': '--', 'width': 1.5},
+        {'start': (3, 1), 'end': (3, -2), 'color': 'gray', 'style': '--', 'width': 1.5},
+        {'start': (-3, -2), 'end': (3, -2), 'color': 'gray', 'style': '--', 'width': 1.5},
     ]
     
-    # Draw connections
+    # Draw connections with clearer arrows
     for conn in connections:
-        plt.annotate('',
+        plt.annotate('', 
                     xy=conn['end'], xycoords='data',
                     xytext=conn['start'], textcoords='data',
-                    arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0.2',
-                                   color='gray', lw=2))
-        # Add label
-        mid_x = (conn['start'][0] + conn['end'][0]) / 2
-        mid_y = (conn['start'][1] + conn['end'][1]) / 2
-        plt.text(mid_x, mid_y, conn['label'], fontsize=10,
-                horizontalalignment='center', verticalalignment='center',
-                bbox=dict(facecolor='white', alpha=0.7, edgecolor='none'))
+                    arrowprops=dict(arrowstyle='-|>', color=conn['color'], 
+                                   lw=conn['width'], ls=conn['style'],
+                                   connectionstyle='arc3,rad=0.1'),
+                    zorder=0)
     
-    # Set boundaries
-    plt.xlim(-9, 9)
-    plt.ylim(-4, 4)
-    plt.axis('off')
+    # Add labels for main relationships
+    relation_labels = [
+        {'pos': (-5, 0.5), 'text': 'Transactions', 'color': '#8e44ad'},
+        {'pos': (5, 0.5), 'text': 'Validation', 'color': '#16a085'},
+        {'pos': (-1.5, 4), 'text': 'Data Flow', 'color': '#c0392b'},
+        {'pos': (1.5, -4), 'text': 'User Interface', 'color': '#d35400'},
+    ]
+    
+    for label in relation_labels:
+        plt.text(label['pos'][0], label['pos'][1], label['text'], fontsize=10,
+                color=label['color'], ha='center', va='center',
+                bbox=dict(facecolor='white', alpha=0.7, boxstyle='round,pad=0.3', edgecolor=label['color']))
     
     # Add title
-    plt.title('QTrust System Overview', fontsize=20, pad=20)
+    plt.title('QTrust System Overview', fontsize=24, fontweight='bold', pad=20)
+    
+    # Define graph boundaries
+    plt.xlim(-9, 9)
+    plt.ylim(-7, 7)
+    plt.axis('off')
     
     # Save figure
     plt.tight_layout()
-    plt.savefig('docs/architecture/system_overview.png', dpi=300, bbox_inches='tight')
-    plt.savefig('docs/exported_charts/system.png', dpi=300, bbox_inches='tight')
     
-    print("System overview created: docs/architecture/system_overview.png")
-    print("System overview copied to: docs/exported_charts/system.png")
+    # Save diagram to charts/architecture directory
+    overview_path = get_chart_path('system_overview.png', 'architecture')
+    plt.savefig(overview_path, dpi=300, bbox_inches='tight')
+    
+    print(f"System overview created: {overview_path}")
 
 def main():
-    """Execute all diagram generation functions."""
-    ensure_output_dir()
+    """Run all diagram generators."""
+    ensure_chart_dirs()
     create_architecture_diagram()
     create_system_overview()
-    print("All architecture diagrams created successfully!")
+    print("All diagrams created successfully.")
 
 if __name__ == "__main__":
     main() 

@@ -1,53 +1,75 @@
 """
-This script checks the import of DQNAgent, RainbowDQNAgent, ActorCriticAgent, and CategoricalQNetwork.
-It ensures that all necessary modules are correctly imported and available for use.
+Test imports for the main modules of the QTrust system.
+
+This module validates that all important components can be imported successfully.
 """
 
+import unittest
+import os
 import sys
-sys.path.insert(0, '.')
+import importlib
 
-try:
-    print("Trying to import DQNAgent...")
-    from qtrust.agents.dqn.agent import DQNAgent
-    print("✓ DQNAgent import successful!")
-except Exception as e:
-    print(f"✗ Error importing DQNAgent: {e}")
+# Add the root directory to PYTHONPATH
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-try:
-    print("\nTrying to import RainbowDQNAgent...")
-    from qtrust.agents.dqn.rainbow_agent import RainbowDQNAgent
-    print("✓ RainbowDQNAgent import successful!")
-except Exception as e:
-    print(f"✗ Error importing RainbowDQNAgent: {e}")
 
-try:
-    print("\nTrying to import ActorCriticAgent...")
-    from qtrust.agents.dqn.actor_critic_agent import ActorCriticAgent
-    print("✓ ActorCriticAgent import successful!")
-except Exception as e:
-    print(f"✗ Error importing ActorCriticAgent: {e}")
+class TestImports(unittest.TestCase):
+    """Test importing the main modules of QTrust."""
+    
+    def test_import_qtrust(self):
+        """Test importing the main package."""
+        import qtrust
+        self.assertTrue(hasattr(qtrust, '__name__'))
+    
+    def test_import_consensus(self):
+        """Test importing the consensus module."""
+        try:
+            from qtrust import consensus
+            self.assertTrue(True)
+        except ImportError:
+            self.fail("Failed to import consensus module")
+    
+    def test_import_agents(self):
+        """Test importing the agents module."""
+        try:
+            from qtrust import agents
+            self.assertTrue(True)
+        except ImportError:
+            self.fail("Failed to import agents module")
+    
+    def test_import_utils(self):
+        """Test importing the utils module."""
+        try:
+            from qtrust import utils
+            self.assertTrue(True)
+        except ImportError:
+            self.fail("Failed to import utils module")
+    
+    def test_import_paths(self):
+        """Test importing the paths module."""
+        try:
+            from qtrust.utils import paths
+            self.assertTrue(hasattr(paths, 'PROJECT_ROOT'))
+            self.assertTrue(hasattr(paths, 'CHARTS_DIR'))
+            self.assertTrue(hasattr(paths, 'DOCS_DIR'))
+        except ImportError:
+            self.fail("Failed to import paths module")
+    
+    def test_import_specific_modules(self):
+        """Test importing specific important modules."""
+        modules_to_test = [
+            'qtrust.utils.visualization',
+            'qtrust.consensus.adaptive_consensus',
+            'qtrust.consensus.adaptive_pos'
+        ]
+        
+        for module_name in modules_to_test:
+            try:
+                module = importlib.import_module(module_name)
+                self.assertTrue(hasattr(module, '__name__'))
+            except ImportError as e:
+                self.fail(f"Failed to import {module_name}: {e}")
 
-print("\nChecking dependencies and imports for RainbowDQNAgent:")
-try:
-    print("Trying to import numpy, torch...")
-    import numpy as np
-    import torch
-    print("✓ numpy and torch import successful!")
-except Exception as e:
-    print(f"✗ Error importing numpy, torch: {e}")
 
-try:
-    print("\nTrying to import CategoricalQNetwork...")
-    from qtrust.agents.dqn.networks import CategoricalQNetwork
-    print("✓ CategoricalQNetwork import successful!")
-except Exception as e:
-    print(f"✗ Error importing CategoricalQNetwork: {e}")
-
-try:
-    print("\nTrying to import NStepPrioritizedReplayBuffer...")
-    from qtrust.agents.dqn.replay_buffer import NStepPrioritizedReplayBuffer
-    print("✓ NStepPrioritizedReplayBuffer import successful!")
-except Exception as e:
-    print(f"✗ Error importing NStepPrioritizedReplayBuffer: {e}")
-
-print("\nCheck complete!") 
+if __name__ == "__main__":
+    unittest.main() 

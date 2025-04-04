@@ -357,6 +357,12 @@ class AdaptiveConsensus:
             "total_operations": 0,
             "security_level_distribution": {"low": 0, "medium": 0, "high": 0}
         }
+        
+        # Trust scores for validators
+        self.validator_trust_scores = {}
+        for i in range(num_validators_per_shard):
+            # Khởi tạo với trust scores mặc định giữa 0.5 và 0.9
+            self.validator_trust_scores[i] = 0.5 + (0.4 * random.random())
     
     def update_consensus_mechanism(self, congestion_levels: Dict[int, float], trust_scores: Dict[int, float], 
                               network_stability: float = 0.5, cross_shard_ratio: float = 0.3) -> Dict[str, Any]:
@@ -607,91 +613,115 @@ class AdaptiveConsensus:
         
         return selected_protocol
     
-    def execute_consensus(self, transaction_value: float, congestion: float, trust_scores: Dict[int, float],
-                         network_stability: float = 0.5, cross_shard: bool = False, 
-                         shard_id: int = 0) -> Tuple[bool, str, float, float]:
+    def execute_consensus(self, 
+                        transaction_value: float, 
+                        shard_id: int,
+                        trust_scores: Dict[int, float],
+                        transaction_data: Any = None) -> Tuple[bool, float, float, str]:
         """
-        Execute consensus with selected protocol.
+        Execute consensus for a transaction.
         
         Args:
-            transaction_value: Transaction value
-            congestion: Congestion level
+            transaction_value: Value of the transaction
+            shard_id: Shard ID
             trust_scores: Trust scores of nodes
-            network_stability: Network stability
-            cross_shard: Is it a cross-shard transaction
-            shard_id: ID of shard processing transaction
+            transaction_data: Transaction data (optional)
             
         Returns:
-            Tuple[bool, str, float, float]: (Consensus result, protocol name, latency, energy)
+            Tuple[bool, float, float, str]: (Success, latency, energy consumption, protocol name)
         """
-        # Select appropriate protocol
-        protocol = self.select_protocol(transaction_value, congestion, trust_scores, network_stability, cross_shard)
+        # Record transaction start time
+        start_time = time.time()
         
-        # Select validator from AdaptivePoS (if enabled)
-        selected_validator = None
-        pos_result = None
-        
+        # Apply adaptive PoS for validator selection if enabled
+        pos_energy_saved = 0.0
         if self.enable_adaptive_pos and shard_id in self.pos_managers:
-            pos_manager = self.pos_managers[shard_id]
+            # Get the validator IDs for this transaction
+            validator_ids = self.pos_managers[shard_id].select_validators_for_committee(
+                committee_size=self.num_validators_per_shard,
+                trust_scores=trust_scores
+            )
+            pos_energy_saved = 0.0  # Giả sử không có tiết kiệm năng lượng nào
             
-            # Select validator to perform consensus
-            selected_validator = pos_manager.select_validator_for_block(trust_scores)
+            # Filter the trust scores to only include active validators
+            active_trust_scores = {vid: trust_scores.get(vid, 0.5) for vid in validator_ids}
             
-            # Simulate one round of PoS
-            pos_result = pos_manager.simulate_round(trust_scores, transaction_value)
-            
-            # Update energy savings statistics
-            if pos_result['rotations'] > 0:
-                self.total_rotations += pos_result['rotations']
-                self.total_energy_saved += pos_result['energy_saved']
-        
-        # Execute consensus with lightweight cryptography (if enabled)
-        if self.enable_lightweight_crypto and self.crypto_manager is not None:
-            # Get energy level of validator to consider security level
-            remaining_energy = 100.0
-            if selected_validator is not None and self.enable_adaptive_pos:
-                remaining_energy = self.pos_managers[shard_id].validators[selected_validator].current_energy
-            
-            # Determine importance of transaction
-            is_critical = cross_shard or transaction_value > self.transaction_threshold_high
-            
-            # Apply lightweight cryptography (simulated through hash message)
-            message = f"tx_{transaction_value}_{time.time()}"
-            crypto_params = {"message": message}
-            
-            # Perform hash with appropriate security level
-            crypto_result = self.crypto_manager.execute_crypto_operation(
-                "hash", crypto_params, transaction_value, congestion, 
-                remaining_energy, is_critical)
-            
-            # Update statistics
-            self.energy_optimization_stats["total_energy_saved_crypto"] += crypto_result["energy_saved"]
-            self.energy_optimization_stats["total_operations"] += 1
-            self.energy_optimization_stats["security_level_distribution"][crypto_result["security_level"]] += 1
-            
-            # Adjust energy consumption of protocol based on lightweight crypto result
-            energy_adjustment_factor = 0.7 if crypto_result["security_level"] == "low" else \
-                                      0.85 if crypto_result["security_level"] == "medium" else 1.0
+            # Update total energy saved from adaptive PoS
+            self.total_energy_saved += pos_energy_saved
         else:
-            energy_adjustment_factor = 1.0  # No adjustment
+            active_trust_scores = trust_scores
+        
+        # Determine the best consensus protocol
+        protocol_name = self.select_consensus_protocol(
+            transaction_value=transaction_value,
+            shard_id=shard_id,
+            trust_scores=active_trust_scores
+        )
+        
+        # Get the selected protocol
+        if protocol_name in self.consensus_protocols:
+            protocol = self.consensus_protocols[protocol_name]
+        else:
+            # Default to PBFT if protocol not found
+            protocol = self.consensus_protocols["PBFT"]
+            protocol_name = "PBFT"
+        
+        # Apply lightweight cryptography if enabled
+        crypto_energy_saved = 0.0
+        if self.enable_lightweight_crypto and self.crypto_manager:
+            # Determine security level based on transaction value
+            if transaction_value <= self.transaction_threshold_low:
+                security_level = "low"
+            elif transaction_value <= self.transaction_threshold_high:
+                security_level = "medium"
+            else:
+                security_level = "high"
             
-        # Execute consensus
-        result, latency, energy = protocol.execute(transaction_value, trust_scores)
+            # Apply appropriate cryptography and get energy savings
+            message = f"tx_{transaction_value}_{time.time()}"
+            crypto_result = self.crypto_manager.execute_crypto_operation(
+                operation="hash",
+                params={"message": message},
+                transaction_value=transaction_value,
+                network_congestion=0.5,  # Giả sử mức độ tắc nghẽn trung bình
+                remaining_energy=50.0,  # Giả sử năng lượng còn lại trung bình
+                is_critical=(transaction_value > self.transaction_threshold_high)
+            )
+            
+            # Lấy năng lượng đã tiết kiệm từ kết quả
+            crypto_energy_saved = crypto_result["energy_saved"]
+            
+            # Update energy optimization statistics
+            self.energy_optimization_stats["total_energy_saved_crypto"] += crypto_energy_saved
+            self.energy_optimization_stats["total_operations"] += 1
+            self.energy_optimization_stats["security_level_distribution"][security_level] += 1
         
-        # Apply energy adjustment if using lightweight crypto
-        energy = energy * energy_adjustment_factor
+        # Execute the selected consensus protocol
+        success, latency, energy = protocol.execute(transaction_value, active_trust_scores)
         
-        # Ensure result is boolean
-        result = bool(result)
+        # Record transaction in history
+        self.transaction_history.append({
+            "value": transaction_value,
+            "shard_id": shard_id,
+            "protocol": protocol_name,
+            "success": success,
+            "latency": latency,
+            "energy": energy,
+            "timestamp": time.time()
+        })
         
-        # Update protocol performance statistics
-        self._update_protocol_performance(protocol.name, result, latency, energy)
+        # Keep transaction history to a limited size
+        if len(self.transaction_history) > self.transaction_history_size:
+            self.transaction_history = self.transaction_history[-self.transaction_history_size:]
         
-        # Update validator energy (if any)
-        if selected_validator is not None and self.enable_adaptive_pos:
-            pos_manager.update_validator_energy(selected_validator, energy, result)
+        # Update protocol performance metrics
+        self.update_protocol_performance(protocol_name, success, latency, energy)
         
-        return result, protocol.name, latency, energy
+        # Return success, adjusted latency, adjusted energy (accounting for savings) and the protocol used
+        total_energy_saved = pos_energy_saved + crypto_energy_saved
+        adjusted_energy = max(1.0, energy - total_energy_saved)
+        
+        return success, latency, adjusted_energy, protocol_name
     
     def _update_protocol_performance(self, protocol_name: str, success: bool, latency: float, energy: float):
         """
@@ -1040,104 +1070,6 @@ class AdaptiveConsensus:
         
         return best_protocol
     
-    def execute_consensus(self, 
-                        transaction_value: float, 
-                        shard_id: int,
-                        trust_scores: Dict[int, float],
-                        transaction_data: Any = None) -> Tuple[bool, float, float, str]:
-        """
-        Execute consensus for a transaction.
-        
-        Args:
-            transaction_value: Value of the transaction
-            shard_id: Shard ID
-            trust_scores: Trust scores of nodes
-            transaction_data: Transaction data
-            
-        Returns:
-            Tuple[bool, float, float, str]: (Success, latency, energy consumption, protocol name)
-        """
-        # Record transaction start time
-        start_time = time.time()
-        
-        # Apply adaptive PoS for validator selection if enabled
-        pos_energy_saved = 0.0
-        if self.enable_adaptive_pos and shard_id in self.pos_managers:
-            # Get the validator IDs for this transaction
-            validator_ids, pos_energy_saved = self.pos_managers[shard_id].select_active_validators()
-            
-            # Filter the trust scores to only include active validators
-            active_trust_scores = {vid: trust_scores.get(vid, 0.5) for vid in validator_ids}
-            
-            # Update total energy saved from adaptive PoS
-            self.total_energy_saved += pos_energy_saved
-        else:
-            active_trust_scores = trust_scores
-        
-        # Determine the best consensus protocol
-        protocol_name = self.select_consensus_protocol(
-            transaction_value=transaction_value,
-            shard_id=shard_id,
-            trust_scores=active_trust_scores
-        )
-        
-        # Get the selected protocol
-        if protocol_name in self.consensus_protocols:
-            protocol = self.consensus_protocols[protocol_name]
-        else:
-            # Default to PBFT if protocol not found
-            protocol = self.consensus_protocols["PBFT"]
-            protocol_name = "PBFT"
-        
-        # Apply lightweight cryptography if enabled
-        crypto_energy_saved = 0.0
-        if self.enable_lightweight_crypto and self.crypto_manager:
-            # Determine security level based on transaction value
-            if transaction_value <= self.transaction_threshold_low:
-                security_level = "low"
-            elif transaction_value <= self.transaction_threshold_high:
-                security_level = "medium"
-            else:
-                security_level = "high"
-            
-            # Apply appropriate cryptography and get energy savings
-            crypto_energy_saved = self.crypto_manager.apply_adaptive_crypto(
-                security_level=security_level,
-                data_size=len(str(transaction_data)) if transaction_data else 1024
-            )
-            
-            # Update energy optimization statistics
-            self.energy_optimization_stats["total_energy_saved_crypto"] += crypto_energy_saved
-            self.energy_optimization_stats["total_operations"] += 1
-            self.energy_optimization_stats["security_level_distribution"][security_level] += 1
-        
-        # Execute the selected consensus protocol
-        success, latency, energy = protocol.execute(transaction_value, active_trust_scores)
-        
-        # Record transaction in history
-        self.transaction_history.append({
-            "value": transaction_value,
-            "shard_id": shard_id,
-            "protocol": protocol_name,
-            "success": success,
-            "latency": latency,
-            "energy": energy,
-            "timestamp": time.time()
-        })
-        
-        # Keep transaction history to a limited size
-        if len(self.transaction_history) > self.transaction_history_size:
-            self.transaction_history = self.transaction_history[-self.transaction_history_size:]
-        
-        # Update protocol performance metrics
-        self.update_protocol_performance(protocol_name, success, latency, energy)
-        
-        # Return success, adjusted latency, adjusted energy (accounting for savings) and the protocol used
-        total_energy_saved = pos_energy_saved + crypto_energy_saved
-        adjusted_energy = max(1.0, energy - total_energy_saved)
-        
-        return success, latency, adjusted_energy, protocol_name
-    
     def get_protocol_usage_statistics(self) -> Dict[str, float]:
         """
         Get statistics about protocol usage.
@@ -1202,3 +1134,45 @@ class AdaptiveConsensus:
             "total_operations": 0,
             "security_level_distribution": {"low": 0, "medium": 0, "high": 0}
         }
+
+    def get_trust_scores(self) -> Dict[str, float]:
+        """
+        Trả về điểm tin cậy của tất cả các validator.
+        
+        Returns:
+            Dict[str, float]: Từ điển validator_id -> trust_score
+        """
+        if not hasattr(self, 'validators') or not self.validators:
+            # Khởi tạo giá trị mặc định nếu chưa có dữ liệu
+            return {f"validator_{i}": 0.7 + (0.3 * random.random()) for i in range(self.num_validators_per_shard)}
+            
+        # Nếu đã có dữ liệu về validators, sử dụng điểm tin cậy thực tế
+        trust_scores = {}
+        for validator_id, validator_data in self.validators.items():
+            trust_scores[validator_id] = validator_data.get('trust_score', 0.7 + (0.3 * random.random()))
+            
+        return trust_scores
+        
+    def update_trust_scores(self, validator_updates: Dict[str, float]) -> None:
+        """
+        Cập nhật điểm tin cậy cho các validator.
+        
+        Args:
+            validator_updates: Từ điển validator_id -> trust_score_mới
+        """
+        if not hasattr(self, 'validators'):
+            self.validators = {}
+            
+        for validator_id, new_score in validator_updates.items():
+            # Đảm bảo validator tồn tại
+            if validator_id not in self.validators:
+                self.validators[validator_id] = {
+                    'trust_score': 0.7,  # Giá trị mặc định
+                    'transactions_processed': 0,
+                    'successful_transactions': 0
+                }
+                
+            # Cập nhật điểm tin cậy mới và đảm bảo nằm trong khoảng [0,1]
+            self.validators[validator_id]['trust_score'] = max(0.0, min(1.0, new_score))
+            
+        logger.info(f"Updated trust scores for {len(validator_updates)} validators")

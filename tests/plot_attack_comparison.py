@@ -32,6 +32,22 @@ def plot_comparison_radar(metrics_data, output_dir='results_comparison'):
     """Draw a radar chart comparing performance across different attack types."""
     os.makedirs(output_dir, exist_ok=True)
     
+    # Set scientific style
+    plt.style.use('seaborn-v0_8-whitegrid')
+    
+    # Configure global font settings
+    plt.rcParams.update({
+        'font.family': 'serif',
+        'font.serif': ['Times New Roman', 'DejaVu Serif', 'Palatino'],
+        'font.size': 11,
+        'axes.titlesize': 14,
+        'axes.labelsize': 12,
+        'xtick.labelsize': 11,
+        'ytick.labelsize': 10,
+        'legend.fontsize': 10,
+        'figure.titlesize': 16
+    })
+    
     # Metrics for comparison
     metrics = ['throughput', 'latency', 'energy', 'security', 'cross_shard_ratio']
     
@@ -76,11 +92,11 @@ def plot_comparison_radar(metrics_data, output_dir='results_comparison'):
     labels = [m.replace('_', ' ').title() for m in metrics]
     labels += labels[:1]  # Close the circle
     
-    # Colors and styles for each attack type
-    colors = sns.color_palette("Set1", len(normalized_data))
+    # Scientific color palette for each attack type
+    colors = plt.cm.tab10(np.linspace(0, 1, len(normalized_data)))
     
-    # Create a larger figure
-    plt.figure(figsize=(12, 10))
+    # Create a figure with white background
+    plt.figure(figsize=(12, 10), facecolor='white')
     ax = plt.subplot(111, polar=True)
     
     # Plot for each attack type
@@ -89,40 +105,73 @@ def plot_comparison_radar(metrics_data, output_dir='results_comparison'):
         attack_values = [values[m] for m in metrics]
         attack_values += attack_values[:1]  # Close the circle
         
-        # Plot line and fill color
-        ax.plot(angles, attack_values, linewidth=2, linestyle='solid', 
+        # Plot line and fill color with enhanced styling
+        ax.plot(angles, attack_values, linewidth=2.5, linestyle='solid', 
                 label=attack.replace('_', ' ').title(), color=colors[i])
-        ax.fill(angles, attack_values, alpha=0.1, color=colors[i])
+        ax.fill(angles, attack_values, alpha=0.2, color=colors[i])
     
     # Customize radar chart
     ax.set_theta_offset(np.pi / 2)  # Start from top
     ax.set_theta_direction(-1)  # Go clockwise
     
-    # Set labels for each axis
+    # Set labels for each axis with enhanced styling
     ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(labels[:-1], fontsize=12)
+    ax.set_xticklabels(labels[:-1], fontsize=12, fontweight='bold')
     
-    # Add fade levels
+    # Add fade levels with enhanced styling
     ax.set_yticks([0.2, 0.4, 0.6, 0.8, 1.0])
     ax.set_yticklabels(['0.2', '0.4', '0.6', '0.8', '1.0'], fontsize=10)
     ax.set_ylim(0, 1)
     
-    # Add grid
-    ax.grid(True, linestyle='--', alpha=0.7)
+    # Add grid with enhanced styling
+    ax.grid(True, linestyle='--', alpha=0.6)
     
-    # Add title and legend
-    plt.title('QTrust Performance Comparison Across Attack Scenarios', fontsize=15, fontweight='bold', pad=20)
-    plt.legend(loc='upper right', bbox_to_anchor=(0.1, 0.1))
+    # Add title and legend with enhanced positioning and styling
+    plt.title('QTrust Performance Comparison Across Attack Scenarios', 
+              fontsize=16, fontweight='bold', pad=20)
     
-    # Save chart
+    # Better legend positioning and styling
+    legend = plt.legend(loc='upper right', bbox_to_anchor=(0.1, 0.1),
+                       framealpha=0.9, edgecolor='gray')
+    
+    # Add background color to every other metric for better readability
+    for i in range(N):
+        if i % 2 == 0:
+            angle = angles[i]
+            ax.fill_between([angle, angles[i+1]], 0, 1, 
+                           color='gray', alpha=0.05)
+    
+    # Add metric explanations
+    plt.figtext(0.5, 0.01, 
+               "Normalized metrics where 1.0 represents the best performance across attack types.\n"
+               "For latency and energy consumption, lower original values are normalized to higher values.",
+               ha='center', fontsize=10, fontstyle='italic')
+    
+    # Apply tight layout and save with high quality
+    plt.tight_layout(rect=[0, 0.03, 1, 0.97])
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    plt.tight_layout()
     plt.savefig(f"{output_dir}/attack_comparison_radar_{timestamp}.png", dpi=300, bbox_inches='tight')
     plt.close()
 
 def plot_comparison_bars(metrics_data, output_dir='results_comparison'):
     """Draw bar charts comparing performance metrics across attack types."""
     os.makedirs(output_dir, exist_ok=True)
+    
+    # Set scientific style
+    plt.style.use('seaborn-v0_8-whitegrid')
+    
+    # Configure global font settings
+    plt.rcParams.update({
+        'font.family': 'serif',
+        'font.serif': ['Times New Roman', 'DejaVu Serif', 'Palatino'],
+        'font.size': 11,
+        'axes.titlesize': 14,
+        'axes.labelsize': 12,
+        'xtick.labelsize': 10,
+        'ytick.labelsize': 10,
+        'legend.fontsize': 10,
+        'figure.titlesize': 16
+    })
     
     # Convert data for easier plotting with seaborn
     df_data = []
@@ -136,11 +185,20 @@ def plot_comparison_bars(metrics_data, output_dir='results_comparison'):
     
     df = pd.DataFrame(df_data)
     
-    # Create large figure
-    plt.figure(figsize=(15, 12))
+    # Create large figure with white background
+    plt.figure(figsize=(15, 12), facecolor='white')
     
     # Plot for each metric
     metrics = ['Throughput', 'Latency', 'Energy', 'Security', 'Cross Shard Ratio']
+    
+    # Scientific color palettes for each metric
+    palettes = {
+        'Throughput': 'viridis',
+        'Latency': 'magma',
+        'Energy': 'cividis', 
+        'Security': 'plasma',
+        'Cross Shard Ratio': 'inferno'
+    }
     
     for i, metric in enumerate(metrics):
         plt.subplot(3, 2, i+1)
@@ -152,26 +210,44 @@ def plot_comparison_bars(metrics_data, output_dir='results_comparison'):
         else:  # Higher values are better
             metric_data = metric_data.sort_values('Value', ascending=False)
         
-        # Plot bar chart
-        sns.barplot(data=metric_data, x='Attack', y='Value', 
-                    palette='viridis', alpha=0.8)
+        # Plot bar chart with enhanced styling
+        ax = sns.barplot(data=metric_data, x='Attack', y='Value', 
+                    palette=palettes[metric], alpha=0.85, edgecolor='black', linewidth=1)
         
-        # Add annotations
+        # Add value annotations on bars
         for j, row in enumerate(metric_data.itertuples()):
             plt.text(j, row.Value + (max(metric_data['Value']) * 0.02), 
-                     f"{row.Value:.2f}", ha='center', fontsize=9)
+                     f"{row.Value:.2f}", ha='center', fontsize=9, fontweight='bold')
         
         # Customize axes and title
-        plt.title(f"{metric} Comparison", fontsize=13, fontweight='bold')
-        plt.xlabel('')
-        plt.ylabel(metric)
+        plt.title(f"{metric} Comparison", fontsize=14, fontweight='bold', pad=10)
+        plt.xlabel('Attack Type', fontweight='bold')
+        plt.ylabel(f"{metric} Value", fontweight='bold')
         plt.xticks(rotation=45, ha='right')
-        plt.grid(axis='y', linestyle='--', alpha=0.7)
+        
+        # Enhanced grid styling
+        plt.grid(axis='y', linestyle='--', alpha=0.6)
+        ax.set_axisbelow(True)  # Put grid behind bars
+        
+        # Add band for context if applicable
+        if metric == 'Security':
+            plt.axhspan(0.8, 1.0, alpha=0.1, color='green', label='High Security')
+            plt.axhspan(0.6, 0.8, alpha=0.1, color='yellow', label='Medium Security')
+            plt.axhspan(0.0, 0.6, alpha=0.1, color='red', label='Low Security')
+            plt.legend(loc='lower right')
     
-    # Adjust layout
-    plt.tight_layout()
+    # Add overall title
+    plt.suptitle('QTrust Performance Metrics Under Different Attack Scenarios', 
+                fontsize=16, fontweight='bold', y=0.98)
     
-    # Save chart
+    # Add figure description
+    plt.figtext(0.5, 0.01, 
+               "Performance comparison across multiple metrics. For Latency and Energy, lower values indicate better performance.\n"
+               "For Throughput, Security, and Cross-Shard Ratio, higher values indicate better performance.",
+               ha='center', fontsize=10, fontstyle='italic')
+    
+    # Adjust layout and save with high quality
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     plt.savefig(f"{output_dir}/attack_comparison_bars_{timestamp}.png", dpi=300, bbox_inches='tight')
     plt.close()
@@ -180,49 +256,111 @@ def plot_security_vs_performance(metrics_data, output_dir='results_comparison'):
     """Draw a chart comparing security and performance trade-offs."""
     os.makedirs(output_dir, exist_ok=True)
     
-    plt.figure(figsize=(10, 8))
+    # Set scientific style
+    plt.style.use('seaborn-v0_8-whitegrid')
+    
+    # Configure global font settings
+    plt.rcParams.update({
+        'font.family': 'serif',
+        'font.serif': ['Times New Roman', 'DejaVu Serif', 'Palatino'],
+        'font.size': 11,
+        'axes.titlesize': 14,
+        'axes.labelsize': 12,
+        'xtick.labelsize': 10,
+        'ytick.labelsize': 10,
+        'legend.fontsize': 10,
+        'figure.titlesize': 16
+    })
+    
+    # Create figure with white background
+    plt.figure(figsize=(12, 9), facecolor='white')
     
     # Prepare data for scatter plot
     attacks = []
     throughputs = []
     latencies = []
     securities = []
+    energies = []
     
     for attack, values in metrics_data.items():
         attacks.append(attack.replace('_', ' ').title())
         throughputs.append(values['throughput'])
         latencies.append(values['latency'])
         securities.append(values['security'])
+        energies.append(values['energy'])
+    
+    # Normalize for sizing
+    norm_energies = [1.0 - (e/max(energies)) for e in energies]  # Invert so lower energy = larger point
+    sizes = [100 + 400 * ne for ne in norm_energies]  # Scale for visibility
     
     # Colors based on latency (lower = better)
-    norm_latencies = [l/max(latencies) for l in latencies]
-    colors = plt.cm.cool(norm_latencies)
+    norm_latencies = [1.0 - (l/max(latencies)) for l in latencies]  # Invert so lower latency = better color
+    colors = plt.cm.viridis(norm_latencies)
     
-    # Size based on throughput (higher = better)
-    norm_throughputs = [t/max(throughputs) * 500 for t in throughputs]
+    # Create scatter plot with enhanced styling
+    scatter = plt.scatter(throughputs, securities, s=sizes, c=colors, alpha=0.7, 
+                        edgecolor='black', linewidth=1)
     
-    # Draw scatter plot
-    plt.scatter(securities, latencies, s=norm_throughputs, c=colors, alpha=0.6)
-    
-    # Add annotations
+    # Add attack labels with adjusted positions
     for i, attack in enumerate(attacks):
-        plt.annotate(attack, (securities[i], latencies[i]), 
-                    xytext=(5, 5), textcoords='offset points', fontsize=10)
+        plt.annotate(attack, 
+                   (throughputs[i], securities[i]),
+                   xytext=(5, 5),
+                   textcoords='offset points',
+                   fontsize=9, fontweight='bold')
     
-    # Customize chart
-    plt.title('Security vs. Latency Trade-off Across Attack Scenarios', fontsize=14, fontweight='bold')
-    plt.xlabel('Security Score', fontsize=12)
-    plt.ylabel('Latency (ms)', fontsize=12)
-    plt.grid(True, linestyle='--', alpha=0.7)
+    # Add grid with enhanced styling
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.gca().set_axisbelow(True)  # Put grid behind points
     
-    # Add size legend
-    plt.annotate('Bubble size represents throughput', xy=(0.05, 0.95), 
-                xycoords='axes fraction', fontsize=10, bbox=dict(boxstyle="round,pad=0.3", 
-                                                                fc="white", ec="gray", alpha=0.8))
+    # Add performance quadrants with subtle background shading
+    avg_throughput = sum(throughputs) / len(throughputs)
+    avg_security = sum(securities) / len(securities)
     
-    # Save chart
+    plt.axvline(x=avg_throughput, color='gray', linestyle='--', alpha=0.5)
+    plt.axhline(y=avg_security, color='gray', linestyle='--', alpha=0.5)
+    
+    # Add quadrant labels
+    plt.text(max(throughputs)*0.95, max(securities)*0.95, 'High Performance\nHigh Security', 
+             ha='right', va='top', fontsize=10, bbox=dict(boxstyle='round', facecolor='green', alpha=0.1))
+    plt.text(min(throughputs)*1.05, max(securities)*0.95, 'Low Performance\nHigh Security', 
+             ha='left', va='top', fontsize=10, bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.1))
+    plt.text(max(throughputs)*0.95, min(securities)*1.05, 'High Performance\nLow Security', 
+             ha='right', va='bottom', fontsize=10, bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.1))
+    plt.text(min(throughputs)*1.05, min(securities)*1.05, 'Low Performance\nLow Security', 
+             ha='left', va='bottom', fontsize=10, bbox=dict(boxstyle='round', facecolor='red', alpha=0.1))
+    
+    # Add colorbar for latency interpretation
+    cbar = plt.colorbar(scatter, pad=0.02)
+    cbar.set_label('Latency Performance (darker = better)', fontweight='bold')
+    
+    # Add size legend for energy interpretation
+    handles, labels = [], []
+    energy_levels = [min(energies), (min(energies) + max(energies))/2, max(energies)]
+    for energy in energy_levels:
+        norm_energy = 1.0 - (energy/max(energies))
+        size = 100 + 400 * norm_energy
+        handles.append(plt.scatter([], [], s=size, color='gray', alpha=0.7, edgecolor='black', linewidth=1))
+        labels.append(f'Energy: {energy:.2f}')
+    
+    plt.legend(handles, labels, title="Energy Consumption\n(larger = lower energy)", 
+              title_fontsize=10, loc='upper left', framealpha=0.9)
+    
+    # Set axis labels and title with enhanced styling
+    plt.xlabel('Throughput (tx/s)', fontweight='bold')
+    plt.ylabel('Security Score', fontweight='bold')
+    plt.title('Security vs. Performance Trade-off Under Various Attacks', 
+             fontsize=16, fontweight='bold', pad=20)
+    
+    # Add descriptive annotation
+    plt.figtext(0.5, 0.01, 
+               "Bubble size represents energy efficiency (larger bubbles = lower energy consumption).\n"
+               "Color represents latency performance (darker = lower latency = better performance).",
+               ha='center', fontsize=10, fontstyle='italic')
+    
+    # Apply tight layout and save with high quality
+    plt.tight_layout(rect=[0, 0.03, 1, 0.97])
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    plt.tight_layout()
     plt.savefig(f"{output_dir}/security_vs_performance_{timestamp}.png", dpi=300, bbox_inches='tight')
     plt.close()
 

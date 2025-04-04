@@ -10,7 +10,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from typing import Dict, List, Any, Tuple, Optional
+from typing import Dict, List, Any, Tuple, Optional, Union
+import os
+
+from .paths import get_chart_path  # Added import
 
 def calculate_transaction_throughput(successful_txs: int, total_time: float) -> float:
     """
@@ -346,49 +349,42 @@ def calculate_cross_shard_transaction_ratio(cross_shard_txs: int, total_txs: int
     return cross_shard_txs / total_txs
 
 def plot_performance_metrics(metrics: Dict[str, List[float]], 
-                            title: str = "Performance Metrics Over Time",
+                            title: str = "Performance Metrics",
+                            figsize: Tuple[int, int] = (10, 8),
                             save_path: Optional[str] = None):
     """
-    Plot performance metrics over time.
+    Plot performance metrics.
     
     Args:
-        metrics: Dictionary containing time series data for metrics
+        metrics: Dictionary of metric names and values
         title: Title of the plot
-        save_path: Path to save the plot
+        figsize: Figure size (width, height)
+        save_path: Path to save the figure
     """
-    plt.figure(figsize=(15, 10))
+    plt.figure(figsize=figsize)
     
-    metric_names = list(metrics.keys())
-    num_metrics = len(metric_names)
+    n_metrics = len(metrics)
+    if n_metrics == 0:
+        return
     
-    rows = (num_metrics + 1) // 2  # Number of rows in the plot grid
-    cols = min(2, num_metrics)      # Number of columns in the plot grid
+    colors = plt.cm.viridis(np.linspace(0, 1, n_metrics))
     
-    for i, metric_name in enumerate(metric_names):
-        plt.subplot(rows, cols, i+1)
-        
-        values = metrics[metric_name]
-        x = range(len(values))
-        
-        plt.plot(x, values)
-        plt.title(metric_name)
+    for i, (metric_name, values) in enumerate(metrics.items()):
+        plt.subplot(n_metrics, 1, i + 1)
+        plt.plot(values, marker='o', linestyle='-', color=colors[i])
+        plt.title(f"{metric_name}")
         plt.grid(True, linestyle='--', alpha=0.7)
-        
-        # Add moving average
-        window = min(10, len(values))
-        if len(values) >= window:
-            moving_avg = pd.Series(values).rolling(window=window).mean().values
-            plt.plot(range(window-1, len(values)), moving_avg[window-1:], 'r-', linewidth=2, 
-                    label=f'Moving Avg (w={window})')
-            plt.legend()
     
     plt.tight_layout()
     plt.suptitle(title, fontsize=16, y=1.02)
     
     if save_path:
-        plt.savefig(save_path)
-    
-    plt.close()
+        # Use get_chart_path to get the full path
+        full_path = get_chart_path(save_path, "metrics")
+        plt.savefig(full_path, dpi=300, bbox_inches='tight')
+        print(f"Performance metrics plot saved to {full_path}")
+    else:
+        plt.show()
 
 def plot_comparison_charts(comparison_data: Dict[str, Dict[str, float]], 
                           metrics: List[str],
@@ -1070,4 +1066,92 @@ def plot_attack_impact_radar(attack_metrics, output_dir=None):
     else:
         plt.show()
     
-    plt.close() 
+    plt.close()
+
+def plot_blockchain_metrics(metrics: Dict[str, Dict[str, float]],
+                           title: str = "Blockchain Metrics",
+                           figsize: Tuple[int, int] = (12, 10),
+                           save_path: Optional[str] = None):
+    """
+    Plot blockchain metrics in a radar chart.
+    
+    Args:
+        metrics: Dictionary mapping system names to metric dictionaries
+        title: Title of the plot
+        figsize: Figure size
+        save_path: Path to save the figure
+    """
+    plt.figure(figsize=figsize)
+    
+    # Get all unique metric names
+    all_metrics = set()
+    for system_metrics in metrics.values():
+        all_metrics.update(system_metrics.keys())
+    
+    all_metrics = sorted(list(all_metrics))
+    n_metrics = len(all_metrics)
+    
+    if n_metrics < 3:
+        # Not enough metrics for a radar chart
+        return
+    
+    # Set up radar chart
+    angles = np.linspace(0, 2*np.pi, n_metrics, endpoint=False).tolist()
+    angles += angles[:1]  # Close the loop
+    
+    # Set up plot
+    ax = plt.subplot(111, polar=True)
+    
+    # Plot each system
+    for i, (system, system_metrics) in enumerate(metrics.items()):
+        values = [system_metrics.get(metric, 0) for metric in all_metrics]
+        values += values[:1]  # Close the loop
+        
+        ax.plot(angles, values, linewidth=2, linestyle='solid', label=system)
+        ax.fill(angles, values, alpha=0.25)
+    
+    # Set labels and title
+    plt.xticks(angles[:-1], all_metrics)
+    plt.title(title)
+    plt.legend(loc='upper right')
+    
+    if save_path:
+        # Use get_chart_path to get the full path
+        full_path = get_chart_path(save_path, "blockchain")
+        plt.savefig(full_path, dpi=300, bbox_inches='tight')
+        print(f"Blockchain metrics plot saved to {full_path}")
+    else:
+        plt.show()
+
+def plot_transaction_distribution(tx_data: Dict[str, List[float]],
+                                 title: str = "Transaction Distribution",
+                                 figsize: Tuple[int, int] = (10, 6),
+                                 save_path: Optional[str] = None):
+    """
+    Plot transaction distribution.
+    
+    Args:
+        tx_data: Dictionary with transaction data
+        title: Title of the plot
+        figsize: Figure size
+        save_path: Path to save the figure
+    """
+    plt.figure(figsize=figsize)
+    
+    for data_name, values in tx_data.items():
+        plt.hist(values, alpha=0.7, label=data_name, bins=20)
+    
+    plt.xlabel('Value')
+    plt.ylabel('Frequency')
+    plt.title(title)
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    
+    if save_path:
+        # Use get_chart_path to get the full path
+        full_path = get_chart_path(save_path, "transactions")
+        plt.savefig(full_path, dpi=300, bbox_inches='tight')
+        print(f"Transaction distribution plot saved to {full_path}")
+    else:
+        plt.show() 

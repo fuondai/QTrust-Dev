@@ -13,23 +13,6 @@ import sys
 import os
 import locale
 import copy
-
-# Force UTF-8 encoding for console output
-if sys.platform.startswith('win'):
-    import io
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
-    # Try to set locale to UTF-8
-    try:
-        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-    except locale.Error:
-        pass
-
-# Add the current directory to Python path to ensure modules are found
-current_dir = os.path.dirname(os.path.abspath(__file__))
-if current_dir not in sys.path:
-    sys.path.insert(0, current_dir)
-
 import argparse
 import torch
 import numpy as np
@@ -42,6 +25,8 @@ from pathlib import Path
 from gym import spaces
 import json
 from datetime import datetime
+import logging
+from collections import defaultdict
 
 from qtrust.simulation.blockchain_environment import BlockchainEnvironment
 from qtrust.agents.dqn.agent import DQNAgent
@@ -76,6 +61,26 @@ if torch.cuda.is_available():
     torch.cuda.manual_seed(SEED)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
+# Cấu hình logging
+logging.basicConfig(level=logging.INFO, 
+                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# Force UTF-8 encoding for console output
+if sys.platform.startswith('win'):
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+    # Try to set locale to UTF-8
+    try:
+        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+    except locale.Error:
+        pass
+
+# Add the current directory to Python path to ensure modules are found
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
 
 def parse_args():
     """
@@ -238,7 +243,26 @@ def setup_dqn_agent(env, args):
             self.agent.step(state, action_idx, reward, next_state, done)
             
         def save(self, path):
-            return self.agent.save(path)
+            # Convert file path to episode number for save_checkpoint
+            try:
+                # Try to extract episode number from filename
+                filename = os.path.basename(path)
+                if 'checkpoint_ep' in filename:
+                    episode = int(filename.split('checkpoint_ep')[1].split('.')[0])
+                else:
+                    episode = 0
+                return self.agent.save_checkpoint(episode=episode, score=0, is_best=True)
+            except Exception as e:
+                print(f"Error saving model: {str(e)}")
+                # Fallback to saving directly if save_checkpoint fails
+                checkpoint = {
+                    'state_dict': self.agent.qnetwork_local.state_dict(),
+                    'target_state_dict': self.agent.qnetwork_target.state_dict(),
+                    'optimizer': self.agent.optimizer.state_dict(),
+                    'epsilon': self.agent.epsilon
+                }
+                torch.save(checkpoint, path)
+                return True
             
         def load(self, path):
             return self.agent.load(path)
@@ -266,11 +290,11 @@ def setup_dqn_agent(env, args):
         gamma=args.gamma,
         learning_rate=args.lr,
         epsilon_decay=args.epsilon_decay,
-        min_epsilon=args.epsilon_end,
-        hidden_layers=[args.hidden_size, args.hidden_size//2],
+        epsilon_end=args.epsilon_end,
+        hidden_size=args.hidden_size,
         device=args.device,
-        prioritized_replay=True,
-        dueling=True,
+        use_prioritized_replay=True,
+        use_dueling=True,
         update_every=5
     )
     
@@ -428,20 +452,11 @@ def train_qtrust(env, agent, router, consensus, htdcm, fl_system, args):
                 shard_id = tx.get('source_shard', 0)
                 
                 try:
-                    protocol = consensus.select_protocol(
-                        transaction_value=tx['value'],
-                        congestion=network_congestion,
-                        trust_scores=trust_scores_dict
-                    )
-                    
                     # Execute consensus protocol - lấy 4 giá trị trả về
-                    result, protocol_name, latency, energy = consensus.execute_consensus(
+                    result, latency, energy, protocol_name = consensus.execute_consensus(
                         transaction_value=tx['value'],
-                        congestion=network_congestion,
-                        trust_scores=trust_scores_dict,
-                        network_stability=0.5,  # Default value for stability
-                        cross_shard=(tx.get('type') == 'cross_shard'),
-                        shard_id=shard_id
+                        shard_id=shard_id,
+                        trust_scores=trust_scores_dict
                     )
                     # Lưu protocol name vào transaction
                     tx['protocol'] = protocol_name
@@ -1016,20 +1031,20 @@ def adapt_state_for_model(state, model_state_size):
 
 def plot_results(metrics, args, mode='train'):
     """
-    Vẽ biểu đồ kết quả huấn luyện hoặc đánh giá.
+    Plot the results of training or evaluation.
     
     Args:
-        metrics: Dictionary chứa các metrics
-        args: Tham số dòng lệnh
-        mode: 'train' hoặc 'eval'
+        metrics: Dictionary containing metrics
+        args: Command line parameters
+        mode: 'train' or 'eval'
     """
-    print(f"Vẽ đồ thị kết quả {'huấn luyện' if mode == 'train' else 'đánh giá'}...")
+    print(f"Plotting {mode} results...")
     
-    # Tạo thư mục cho các biểu đồ
+    # Create directory for plots
     plots_dir = os.path.join(args.save_dir, 'plots')
     os.makedirs(plots_dir, exist_ok=True)
     
-    # Đảm bảo sử dụng font tiếng Việt
+    # Ensure using appropriate fonts
     plt.rcParams['font.sans-serif'] = ['Arial Unicode MS', 'DejaVu Sans', 'Arial']
     
     # 1. Biểu đồ Reward theo thời gian
